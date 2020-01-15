@@ -1,0 +1,205 @@
+#%RAML 1.0
+title: Users API
+
+types:
+  user: !include schemas/userschema.json
+
+/users:
+  description: Collection of users 
+  get:
+    description: Get a list of users
+    responses:
+      200:
+        body:
+          application/json:
+            example: |
+                [
+                  {
+                    "Id": 1,
+                    "Email": "filip.osoianu@ati.utm.md",
+                    "Avatar": "img_here",
+                    "Name": "Felippe"
+                  },
+                  {
+                    "Id": 2,
+                    "Email": "adrian.filip@ati.utm.md",
+                    "Avatar": "img_here",
+                    "Name": "Big@A"
+                  }
+                ]
+  post:
+    description: Create a user
+    body:
+      application/json:
+        type: user
+        example: |
+          {
+           "Email": "adrian.filip@ati.utm.md",
+           "Password": "password123456",
+           "Avatar": "img_here",
+           "Name": "Big@A"
+          }
+    responses:
+      200:
+        body:
+          application/json:
+            example: |
+                {
+                  "Message": "User created! Bravo, Filip, vad ca stii cum sa te folosesti de un api!"
+                }
+  /{Id}:
+    description: User entity
+    get:
+      description: Get the user with `Id = {Id}`
+      responses:
+        200:
+          body:
+            application/json:
+              example: |
+                {
+                 "Id": 1,
+                 "Email": "filip.osoianu@ati.utm.md",
+                 "Avatar": "img_here",
+                 "Name": "Felippe"
+                }
+        404:
+          body:
+            application/json:
+              example: |
+                {"message": "User not found"}
+    put:
+      description: Update the user with `Id = {Id}`
+      body:
+        application/json:
+          example: |
+            {
+             "Email": "adrian.filip@ati.utm.md",
+             "Password": "password123456",
+             "Avatar": "img_here",
+             "Name": "Big@A"
+            }
+      responses:
+        200:
+          body:
+            application/json:
+              example: |
+                {
+                  "Message": "User updated!"
+                }
+        404:
+          body:
+            application/json:
+              example: |
+                {"message": "User not found"}
+    delete:
+      description: Delete the user with `Id = {Id}`
+      responses:
+        200:
+          body:
+            application/json:
+              example: |
+                {
+                  "Message": "User deleted!"
+                }
+        404:
+          body:
+            application/json:
+              example: |
+                {"message": "User not found"}
+    /friends:
+      description: User friends collection
+      get:
+        description: Get all friends for one user
+        responses:
+          200:
+            body:
+              application/json:
+                example: |
+                  [
+                    {
+                      "Id": 1,
+                      "Email": "filip.osoianu@ati.utm.md",
+                      "Avatar": "img_here",
+                      "Name": "Felippe"
+                    },
+                    {
+                      "Id": 2,
+                      "Email": "adrian.filip@ati.utm.md",
+                      "Avatar": "img_here",
+                      "Name": "Big@A"
+                    }
+                  ]
+      post:
+        description: Add a friend
+        body:
+          application/json:
+            example: |
+              {
+               "Email": "adrian.filip@ati.utm.md"
+              }
+        responses:
+          200:
+            body:
+              application/json:
+                example: |
+                    {
+                      "Message": "Friend Request Sent!"
+                    }
+      /{Id}:
+        description: User entity
+        get:
+          description: Get the user's friend with `Id = {Id}`
+          responses:
+            200:
+              body:
+                application/json:
+                  example: |
+                    {
+                     "Id": 1,
+                     "Email": "filip.osoianu@ati.utm.md",
+                     "Avatar": "img_here",
+                     "Name": "Felippe"
+                    }
+            404:
+              body:
+                application/json:
+                  example: |
+                    {"message": "Friend not found"}
+        put:
+          description: Update the user's relationship with his/her friend with `Id = {Id}`
+          body:
+            application/json:
+              example: |
+                {
+                 "status": 1
+                }
+          responses:
+            200:
+              body:
+                application/json:
+                  example: |
+                    {
+                      "Message": "Friendship updated!"
+                    }
+            404:
+              body:
+                application/json:
+                  example: |
+                    {"message": "Friend not found"}
+        delete:
+          description: Delete the user's friendship with `Id = {Id}`
+          responses:
+            200:
+              body:
+                application/json:
+                  example: |
+                    {
+                      "Message": "Friend removed!"
+                    }
+            404:
+              body:
+                application/json:
+                  example: |
+                    {"message": "Friend not found"}
+                        
+       

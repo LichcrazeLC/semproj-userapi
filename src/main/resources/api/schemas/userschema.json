@@ -1,0 +1,64 @@
+{
+  "definitions": {},
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://example.com/root.json",
+  "type": "object",
+  "title": "The Root Schema",
+  "required": [
+    "Email",
+    "Password",
+    "Avatar",
+    "Name"
+  ],
+  "properties": {
+    "Id": {
+      "$id": "#/properties/Id",
+      "type": "integer",
+      "title": "The Id Schema",
+      "default": 0,
+      "examples": [
+        2
+      ]
+    },
+    "Email": {
+      "$id": "#/properties/Email",
+      "type": "string",
+      "title": "The Email Schema",
+      "default": "",
+      "examples": [
+        "adrian.filip@ati.utm.md"
+      ],
+      "pattern": "^(.*)$"
+    },
+    "Password": {
+      "$id": "#/properties/Password",
+      "type": "string",
+      "title": "The Password Schema",
+      "default": "",
+      "examples": [
+        "password123456"
+      ],
+      "pattern": "^(.*)$"
+    },
+    "Avatar": {
+      "$id": "#/properties/Avatar",
+      "type": "string",
+      "title": "The Avatar Schema",
+      "default": "",
+      "examples": [
+        "img_here"
+      ],
+      "pattern": "^(.*)$"
+    },
+    "Name": {
+      "$id": "#/properties/Name",
+      "type": "string",
+      "title": "The Name Schema",
+      "default": "",
+      "examples": [
+        "Big@A"
+      ],
+      "pattern": "^(.*)$"
+    }
+  }
+}

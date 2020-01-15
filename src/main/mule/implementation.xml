@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<db:config name="user_db_config" doc:name="Database Config" doc:id="e0660d5a-bdc5-492a-8b67-4eaaa1550f29" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="rootpass" database="usersdb" >
+			<db:connection-properties >
+				<db:connection-property key="useSSL" value="false" />
+			</db:connection-properties>
+		</db:my-sql-connection>
+	</db:config>
+	<flow name="getAllUsers" doc:id="8aaf042b-0b35-43c7-852e-8831b91f4c4e" >
+		<db:select doc:name="SelectUsers" doc:id="506e6f9b-f306-4691-80bd-e726fad16ee9" config-ref="user_db_config">
+			<db:sql >SELECT Id, Email, Avatar, Name FROM usersdb.users;</db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="89d56a97-7994-4c5d-93c5-bea876248499" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="getUserById" doc:id="a4a3f8d3-8abd-4923-bdd9-f6e36e58644d" >
+		<logger level="INFO" doc:name="Logger" doc:id="232b94af-b864-4079-9bda-3992b43726e0" message="#[attributes.uriParams.Id]"/>
+		<db:select doc:name="SelectUser" doc:id="e469107a-1f4e-4738-8ebb-5b7d5cf1c3e1" config-ref="user_db_config" >
+			<db:sql >SELECT Id, Email, Avatar, Name FROM usersdb.users WHERE Id = :Id;</db:sql>
+			<db:input-parameters ><![CDATA[#[{'Id' : attributes.uriParams.Id}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="c50ded04-c9e5-4aa5-8765-c61ec1c58ae6" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Id": payload[0].Id,
+	"Email": payload[0].Email,
+	"Avatar": payload[0].Avatar,
+	"Name": payload[0].Name
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="updateUser" doc:id="3f9f5602-c262-4768-8a39-51d7cfc21ab4" >
+		<logger level="INFO" doc:name="Logger" doc:id="74167f33-f03d-40b3-bd69-598c4222b31e" message="#[attributes.uriParams.Id]" />
+		<db:update doc:name="UpdateUser" doc:id="232ac0c5-afd4-46df-af71-88ae107c015b" config-ref="user_db_config">
+			<db:sql >UPDATE users
+SET Name = :Name, Email = :Email, Avatar = :Avatar, Password = :Password
+WHERE Id = :Id;</db:sql>
+			<db:input-parameters ><![CDATA[#[{
+'Id': attributes.uriParams.Id,
+'Name': payload.Name,
+'Email': payload.Email,
+'Avatar': payload.Avatar,
+'Password': payload.Password
+}]]]></db:input-parameters>
+		</db:update>
+		<ee:transform doc:name="Transform Message" doc:id="1cccf765-18d1-4c26-b910-40636ebc1404" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message": "User updated!"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="deleteUser" doc:id="0129319b-eadf-47f3-a328-f6f42aed032a" >
+		<logger level="INFO" doc:name="Logger" doc:id="6933aae6-dad9-4192-a64f-f0553f115f0c" message="#[attributes.uriParams.Id]" />
+		<db:delete doc:name="Delete" doc:id="4b4b8c90-0fee-43b4-87b8-29f577ad5e78" config-ref="user_db_config">
+			<db:sql >DELETE FROM users WHERE Id = :Id;</db:sql>
+			<db:input-parameters ><![CDATA[#[{'Id': attributes.uriParams.Id}]]]></db:input-parameters>
+		</db:delete>
+		<ee:transform doc:name="Transform Message" doc:id="bc03ffdf-c0aa-482e-8403-b51904cc5483" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message": "User deleted!"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="createUser" doc:id="a7c88c92-4af3-452c-b308-58c4b5d5691c" >
+		<db:insert doc:name="InsertUser" doc:id="f3fd8401-e93c-496e-8222-ed0af1644061" config-ref="user_db_config">
+			<db:sql >INSERT INTO `usersdb`.`users`
+(
+`Email`, `Password`, `Name`, `Avatar`
+)
+VALUES
+(
+ :Email, :Password, :Name, :Avatar
+);
+</db:sql>
+			<db:input-parameters ><![CDATA[#[{
+'Email': payload.Email,
+	'Password': payload.Password,
+	'Name': payload.Name,
+	'Avatar': payload.Avatar
+}]]]></db:input-parameters>
+		</db:insert>
+		<ee:transform doc:name="Transform Message" doc:id="fa1bd019-7fb8-4dbf-bbd6-c67851c47591" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+ "Message": "User created! Bravo, Filip, vad ca stii cum sa te folosesti de un api!"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="getAllFriendsOfAUser" doc:id="0472c391-807f-434d-b925-4df30e8abfd6" >
+		<db:select doc:name="SelectFriends" doc:id="6b8e6012-91e3-461f-a007-2596cbc27b35" config-ref="user_db_config" >
+			<db:sql >SELECT Id, Email, Avatar, Name FROM usersdb.users u INNER JOIN usersdb.relationships r ON u.Id = r.user_one_Id;</db:sql>
+			<db:input-parameters ><![CDATA[#[{'Id': attributes.uriParams.Id}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="d7f3bbfb-7e51-4e41-9aff-3e669a1d5260" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
