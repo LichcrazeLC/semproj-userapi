@@ -16,7 +16,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<choice doc:name="Choice" doc:id="f7b9ef15-dd22-4940-8985-d9ec8fdaf86b" >
 			<when expression="#[attributes.queryParams.email != null]">
 				<db:select doc:name="SelectUsers" doc:id="4f6a9385-a01c-48e2-8c66-8998eb4747c4" config-ref="user_db_config" >
-					<db:sql >SELECT Id, Email, Avatar, Name FROM usersdb.users WHERE Email = :Email;</db:sql>
+					<db:sql >SELECT Id, Email, Password, Avatar, Name FROM usersdb.users WHERE Email = :Email;</db:sql>
 					<db:input-parameters ><![CDATA[#[{'Email': attributes.queryParams.email}]]]></db:input-parameters>
 				</db:select>
 				<ee:transform doc:name="Transform Message" doc:id="0da88666-7f72-4b54-ab2f-ec1b02881378" >
@@ -27,6 +27,7 @@ output application/json
 {
 	"Id": payload[0].Id,
 	"Email": payload[0].Email,
+	"Password": payload[0].Password,
 	"Avatar": payload[0].Avatar,
 	"Name": payload[0].Name
 }]]></ee:set-payload>
