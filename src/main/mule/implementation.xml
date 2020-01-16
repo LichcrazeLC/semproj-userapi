@@ -13,17 +13,40 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		</db:my-sql-connection>
 	</db:config>
 	<flow name="getAllUsers" doc:id="8aaf042b-0b35-43c7-852e-8831b91f4c4e" >
-		<db:select doc:name="SelectUsers" doc:id="506e6f9b-f306-4691-80bd-e726fad16ee9" config-ref="user_db_config">
-			<db:sql >SELECT Id, Email, Avatar, Name FROM usersdb.users;</db:sql>
+		<choice doc:name="Choice" doc:id="f7b9ef15-dd22-4940-8985-d9ec8fdaf86b" >
+			<when expression="#[attributes.queryParams.email != null]">
+				<db:select doc:name="SelectUsers" doc:id="4f6a9385-a01c-48e2-8c66-8998eb4747c4" config-ref="user_db_config" >
+					<db:sql >SELECT Id, Email, Avatar, Name FROM usersdb.users WHERE Email = :Email;</db:sql>
+					<db:input-parameters ><![CDATA[#[{'Email': attributes.queryParams.email}]]]></db:input-parameters>
+				</db:select>
+				<ee:transform doc:name="Transform Message" doc:id="0da88666-7f72-4b54-ab2f-ec1b02881378" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Id": payload[0].Id,
+	"Email": payload[0].Email,
+	"Avatar": payload[0].Avatar,
+	"Name": payload[0].Name
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<db:select doc:name="SelectUsers" doc:id="506e6f9b-f306-4691-80bd-e726fad16ee9" config-ref="user_db_config">
+			<db:sql>SELECT Id, Email, Avatar, Name FROM usersdb.users;</db:sql>
 		</db:select>
-		<ee:transform doc:name="Transform Message" doc:id="89d56a97-7994-4c5d-93c5-bea876248499" >
-			<ee:message >
-				<ee:set-payload ><![CDATA[%dw 2.0
+				<ee:transform doc:name="Transform Message" doc:id="89d56a97-7994-4c5d-93c5-bea876248499">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
 payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
+			</otherwise>
+		</choice>
 	</flow>
 	<flow name="getUserById" doc:id="a4a3f8d3-8abd-4923-bdd9-f6e36e58644d" >
 		<logger level="INFO" doc:name="Logger" doc:id="232b94af-b864-4079-9bda-3992b43726e0" message="#[attributes.uriParams.Id]"/>
@@ -118,7 +141,8 @@ output application/json
 	</flow>
 	<flow name="getAllFriendsOfAUser" doc:id="0472c391-807f-434d-b925-4df30e8abfd6" >
 		<db:select doc:name="SelectFriends" doc:id="6b8e6012-91e3-461f-a007-2596cbc27b35" config-ref="user_db_config" >
-			<db:sql >SELECT Id, Email, Avatar, Name FROM usersdb.users u INNER JOIN usersdb.relationships r ON u.Id = r.user_one_Id;</db:sql>
+			<db:sql >SELECT Id, Email, Avatar, Name FROM usersdb.users u INNER JOIN usersdb.relationships r ON u.Id = r.user_one_Id WHERE r.user_two_Id = :Id UNION
+SELECT Id, Email, Avatar, Name FROM usersdb.users u INNER JOIN usersdb.relationships r ON u.Id = r.user_two_Id WHERE r.user_one_Id = :Id</db:sql>
 			<db:input-parameters ><![CDATA[#[{'Id': attributes.uriParams.Id}]]]></db:input-parameters>
 		</db:select>
 		<ee:transform doc:name="Transform Message" doc:id="d7f3bbfb-7e51-4e41-9aff-3e669a1d5260" >
@@ -127,6 +151,76 @@ output application/json
 output application/json
 ---
 payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="addFriend" doc:id="5c6c9143-331b-4d22-b6a7-45d921f55cf8" >
+		<set-variable value="#[payload.friendId]" doc:name="Set friendId" doc:id="aed99981-7f24-4ce5-908c-ce44994a428c" variableName="friendId"/>
+		<set-variable value="#[attributes.uriParams.Id]" doc:name="Set userId" doc:id="0abdffcb-10e5-451e-90c0-460af53b83dd" variableName="userId"/>
+		<db:select doc:name="SelectFriends" doc:id="66aee40d-d8f0-46bb-ab01-014d222303d2" config-ref="user_db_config">
+			<db:sql>SELECT * FROM usersdb.relationships WHERE (user_one_Id = :userId AND user_two_Id = :friendId) OR (user_one_Id = :friendId AND user_two_Id = :userId)</db:sql>
+			<db:input-parameters><![CDATA[#[{
+'userId': vars.userId,
+'friendId': vars.friendId
+}]]]></db:input-parameters>
+		</db:select>
+		<choice doc:name="Choice" doc:id="2f17f144-c8a6-4eab-8749-7f72962fc2f2" >
+			<when expression="#[isEmpty(payload)]">
+				<db:insert doc:name="Insert" doc:id="100e6eef-ed54-4bd2-a94d-0d4c6b44cb6d" config-ref="user_db_config">
+					<db:sql >INSERT INTO `usersdb`.`relationships`
+(`user_one_Id`, `user_two_Id`, `status`, `action_user_Id`)
+VALUES
+(:userId, :friendId, 1, :userId);
+</db:sql>
+					<db:input-parameters ><![CDATA[#[{
+'userId': vars.userId,
+'friendId': vars.friendId
+}]]]></db:input-parameters>
+				</db:insert>
+				<logger level="INFO" doc:name="Logger" doc:id="63e78de0-650a-46b0-951b-febaad2c1b73" message="Creating a new relationship..."/>
+			</when>
+			<when expression="#[payload.status == 0]">
+				<db:update doc:name="Update" doc:id="35906700-ef3c-4118-b96a-ce523d673936" config-ref="user_db_config">
+					<db:sql >UPDATE usersdb.relationships SET status = 1, action_user_Id = :userId WHERE (user_one_Id = :userId AND user_two_Id = :friendId) OR (user_one_Id = :friendId AND user_two_Id = :userId);</db:sql>
+					<db:input-parameters ><![CDATA[#[{
+'userId': vars.userId,
+'friendId': vars.friendId
+}]]]></db:input-parameters>
+				</db:update>
+				<logger level="INFO" doc:name="Logger" doc:id="d70a4da8-357a-4fa7-b271-a654b076d1c9" message="Updating existing relationship's status to friend request..." />
+			</when>
+			<otherwise>
+				<logger level="INFO" doc:name="Logger" doc:id="e043e451-8921-4ba7-ac12-8f7484d9bc30" message="Request already sent or user blocked!"/>
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Transform Message" doc:id="f2ff6bfe-a292-4dd5-bf09-12b3c8c200cd" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message": "Friend Request Sent!"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="updateRelationship" doc:id="9eeda970-8f36-4de4-843b-8bd57b6cae7b" >
+		<db:update doc:name="Update" doc:id="5a1a65c6-ad94-4f7e-96c6-1e3156ae3a17" config-ref="user_db_config">
+			<db:sql>UPDATE usersdb.relationships SET status = :status, action_user_Id = :userId WHERE (user_one_Id = :userId AND user_two_Id = :friendId) OR (user_one_Id = :friendId AND user_two_Id = :userId);</db:sql>
+			<db:input-parameters><![CDATA[#[{
+'userId': attributes.uriParams.Id,
+'friendId': attributes.uriParams.friendId,
+'status': payload.status
+}]]]></db:input-parameters>
+		</db:update>
+		<ee:transform doc:name="Transform Message" doc:id="63d3a70c-78b7-43ce-8099-fcd0edebab41" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "Message": "Friendship updated!"
+}]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 	</flow>

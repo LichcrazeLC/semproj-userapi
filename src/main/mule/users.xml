@@ -126,72 +126,14 @@ output application/json
     <flow name="put:\users\(Id):application\json:users-config">
 		<flow-ref doc:name="Flow Reference" doc:id="aa54dd3c-b517-49f9-95d1-a7347bbc77ad" name="updateUser"/>
     </flow>
-    <flow name="put:\users\(Id)\friends\(Id):application\json:users-config">
-        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
-            <ee:variables>
-                <ee:set-variable variableName="Id">attributes.uriParams.'Id'</ee:set-variable>
-                <ee:set-variable variableName="Id">attributes.uriParams.'Id'</ee:set-variable>
-            </ee:variables>
-        </ee:transform>
-        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-  Message: "Friendship updated!"
-}]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
+    <flow name="put:\users\(Id)\friends\(friendId):application\json:users-config">
+		<flow-ref doc:name="Flow Reference" doc:id="6afc0f98-c3e8-4ff3-8490-28067823e3cb" name="updateRelationship" />
     </flow>
     <flow name="delete:\users\(Id):users-config">
 		<flow-ref doc:name="Flow Reference" doc:id="c83a8033-0ce7-4a15-b3a9-5c551602f43c" name="deleteUser"/>
     </flow>
-    <flow name="delete:\users\(Id)\friends\(Id):users-config">
-        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
-            <ee:variables>
-                <ee:set-variable variableName="Id">attributes.uriParams.'Id'</ee:set-variable>
-                <ee:set-variable variableName="Id">attributes.uriParams.'Id'</ee:set-variable>
-            </ee:variables>
-        </ee:transform>
-        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-  Message: "Friend removed!"
-}]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
-    </flow>
     <flow name="get:\users\(Id)\friends:users-config">
-        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
-            <ee:variables>
-                <ee:set-variable variableName="Id">attributes.uriParams.'Id'</ee:set-variable>
-            </ee:variables>
-        </ee:transform>
-        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-[
-  {
-    Id: 1,
-    Email: "filip.osoianu@ati.utm.md",
-    Avatar: "img_here",
-    Name: "Felippe"
-  }, 
-  {
-    Id: 2,
-    Email: "adrian.filip@ati.utm.md",
-    Avatar: "img_here",
-    Name: "Big@A"
-  }
-]]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="de9bc888-6d6c-4f66-9502-47b34bdf365f" name="getAllFriendsOfAUser" />
     </flow>
     <flow name="get:\users:users-config">
         <flow-ref doc:name="Flow Reference" doc:id="a684e29d-327a-4266-94b9-e1ad829cc052" name="getAllUsers"/>
@@ -199,43 +141,8 @@ output application/json
     <flow name="get:\users\(Id):users-config">
 		<flow-ref doc:name="Flow Reference" doc:id="1a073fa5-5950-4935-93f6-8bc61731a745" name="getUserById" />
     </flow>
-    <flow name="get:\users\(Id)\friends\(Id):users-config">
-        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
-            <ee:variables>
-                <ee:set-variable variableName="Id">attributes.uriParams.'Id'</ee:set-variable>
-                <ee:set-variable variableName="Id">attributes.uriParams.'Id'</ee:set-variable>
-            </ee:variables>
-        </ee:transform>
-        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-  Id: 1,
-  Email: "filip.osoianu@ati.utm.md",
-  Avatar: "img_here",
-  Name: "Felippe"
-}]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
-    </flow>
     <flow name="post:\users\(Id)\friends:application\json:users-config">
-        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
-            <ee:variables>
-                <ee:set-variable variableName="Id">attributes.uriParams.'Id'</ee:set-variable>
-            </ee:variables>
-        </ee:transform>
-        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-  Message: "Friend Request Sent!"
-}]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="ed27ec54-149d-4aa6-918e-c6f55ce129fd" name="addFriend" />
     </flow>
     <flow name="post:\users:application\json:users-config">
 		<flow-ref doc:name="Flow Reference" doc:id="9e4ad956-8707-4651-84b6-11bef95b2fd3" name="createUser"/>

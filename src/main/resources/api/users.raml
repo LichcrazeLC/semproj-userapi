@@ -8,6 +8,13 @@ types:
   description: Collection of users 
   get:
     description: Get a list of users
+    queryParameters:
+      email:
+            displayName: Email
+            type: string
+            description: A user's email
+            example: filip.osoianu@ati.utm.md
+            required: false
     responses:
       200:
         body:
@@ -135,7 +142,7 @@ types:
           application/json:
             example: |
               {
-               "Email": "adrian.filip@ati.utm.md"
+               "friendId": 1
               }
         responses:
           200:
@@ -145,26 +152,8 @@ types:
                     {
                       "Message": "Friend Request Sent!"
                     }
-      /{Id}:
-        description: User entity
-        get:
-          description: Get the user's friend with `Id = {Id}`
-          responses:
-            200:
-              body:
-                application/json:
-                  example: |
-                    {
-                     "Id": 1,
-                     "Email": "filip.osoianu@ati.utm.md",
-                     "Avatar": "img_here",
-                     "Name": "Felippe"
-                    }
-            404:
-              body:
-                application/json:
-                  example: |
-                    {"message": "Friend not found"}
+      /{friendId}:
+        description: User relationship with another user with `Id = {friendId}`
         put:
           description: Update the user's relationship with his/her friend with `Id = {Id}`
           body:
@@ -180,21 +169,6 @@ types:
                   example: |
                     {
                       "Message": "Friendship updated!"
-                    }
-            404:
-              body:
-                application/json:
-                  example: |
-                    {"message": "Friend not found"}
-        delete:
-          description: Delete the user's friendship with `Id = {Id}`
-          responses:
-            200:
-              body:
-                application/json:
-                  example: |
-                    {
-                      "Message": "Friend removed!"
                     }
             404:
               body:
