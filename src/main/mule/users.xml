@@ -147,4 +147,7 @@ output application/json
     <flow name="post:\users:application\json:users-config">
 		<flow-ref doc:name="Flow Reference" doc:id="9e4ad956-8707-4651-84b6-11bef95b2fd3" name="createUser"/>
     </flow>
+	<flow name="get:\users\(Id)\requests:users-config" doc:id="e84346cf-04b9-431b-b48d-ed01fe7601fc" >
+		<flow-ref doc:name="Flow Reference" doc:id="ab807656-4852-4dfe-9993-9494a52bbefd" name="getUsersThatSentRequests" />
+	</flow>
 </mule>

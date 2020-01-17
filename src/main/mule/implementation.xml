@@ -171,7 +171,7 @@ payload]]></ee:set-payload>
 					<db:sql >INSERT INTO `usersdb`.`relationships`
 (`user_one_Id`, `user_two_Id`, `status`, `action_user_Id`)
 VALUES
-(:userId, :friendId, 1, :userId);
+(:userId, :friendId, 1, :friendId);
 </db:sql>
 					<db:input-parameters ><![CDATA[#[{
 'userId': vars.userId,
@@ -182,7 +182,7 @@ VALUES
 			</when>
 			<when expression="#[payload.status == 0]">
 				<db:update doc:name="Update" doc:id="35906700-ef3c-4118-b96a-ce523d673936" config-ref="user_db_config">
-					<db:sql >UPDATE usersdb.relationships SET status = 1, action_user_Id = :userId WHERE (user_one_Id = :userId AND user_two_Id = :friendId) OR (user_one_Id = :friendId AND user_two_Id = :userId);</db:sql>
+					<db:sql >UPDATE usersdb.relationships SET status = 1, action_user_Id = :friendId WHERE (user_one_Id = :userId AND user_two_Id = :friendId) OR (user_one_Id = :friendId AND user_two_Id = :userId);</db:sql>
 					<db:input-parameters ><![CDATA[#[{
 'userId': vars.userId,
 'friendId': vars.friendId
@@ -222,6 +222,21 @@ output application/json
 {
   "Message": "Friendship updated!"
 }]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="getUsersThatSentRequests" doc:id="b9e196ac-764d-4e14-aeaa-b5782f619a34" >
+		<db:select doc:name="SelectUsersThatSentRequests" doc:id="37d445ad-f5ab-4465-b791-3e5b26a8ee1c" config-ref="user_db_config" >
+			<db:sql >SELECT Id, Email, Avatar, Name FROM usersdb.users u INNER JOIN usersdb.relationships r ON u.Id = r.user_one_Id WHERE r.user_two_Id = :Id AND r.status = 1 AND r.action_user_Id != :Id UNION
+SELECT Id, Email, Avatar, Name FROM usersdb.users u INNER JOIN usersdb.relationships r ON u.Id = r.user_two_Id WHERE r.user_one_Id = :Id AND r.status = 1 AND r.action_user_Id != :Id </db:sql>
+			<db:input-parameters ><![CDATA[#[{'Id': attributes.uriParams.Id}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="14081d10-4a7b-41eb-8199-5eb8cf5291ab" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 	</flow>
